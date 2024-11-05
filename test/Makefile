@@ -3,9 +3,10 @@
 
 # defaults
 SIM ?= icarus
+WAVES ?= 1
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+PROJECT_SOURCES = project.v rle_video.sv spi.v timing.sv vga.sv spi_buffer.sv pwm.v
 
 ifneq ($(GATES),yes)
 
