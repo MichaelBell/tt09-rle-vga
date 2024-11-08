@@ -134,7 +134,7 @@ async def generate_colours(dut, frames, latency=1):
             for j in range(640//8):
                 await spi_send_rle(dut, 8, j & 0x3f, latency)
 
-        await spi_send_rle(dut, 0x3ff, 0, latency)
+        await spi_send_rle(dut, 0x2ff, 0, latency)
         await RisingEdge(dut.spi_cs)
 
 @cocotb.test()
@@ -268,7 +268,7 @@ async def generate_audio(dut, frames, latency=1):
             await spi_send_rle(dut, 2, 1, latency)
             await spi_send_rle(dut, 2, 2, latency)
             await spi_send_rle(dut, 316, colour, latency)
-            await spi_send_data(dut, 0xF800 + colour, latency)
+            await spi_send_data(dut, 0xC000 + colour, latency)
         addr += 8 * 64
 
         colour = 20
@@ -279,15 +279,18 @@ async def generate_audio(dut, frames, latency=1):
             await spi_send_rle(dut, 640-i, colour, latency)
             colour += 1
             if colour == 64: colour = 0
-            await spi_send_data(dut, 0xF800 + (i // 2), latency)
+            if (i % 6) == 2:
+                await spi_send_data(dut, 0xE6A0, latency)
         addr += 4 * 319
 
         for i in range(480-64-319):
             for j in range(640//8):
                 await spi_send_rle(dut, 8, j & 0x3f, latency)
-            await spi_send_data(dut, 0xF800 + i, latency)
+            if (i % 4) == 2:
+                await spi_send_data(dut, 0xF000 + i, latency)
 
-        await spi_send_rle(dut, 0x3ff, 0, latency)
+        await spi_send_data(dut, 0xC080, latency)
+        await spi_send_rle(dut, 0x2ff, 0, latency)
         await RisingEdge(dut.spi_cs)
 
 @cocotb.test()

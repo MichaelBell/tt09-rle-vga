@@ -1,0 +1,8 @@
+Run: 
+mpremote connect COM12 + mount . + exec "import os; os.chdir('/'); import run_rle; run_rle.run(query=False, stop=False)"
+
+Update:
+mpremote connect COM12 + mount . + exec "import os; os.chdir('/'); import fpga_flash_prog; fpga_flash_prog.program('/remote/rlevga.bin')"
+
+Program:
+mpremote connect COM12 + mount . + exec "import os; os.chdir('/'); import flash_prog; flash_prog.program('/remote/waves.bin')"
