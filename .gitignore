@@ -14,6 +14,9 @@ badapple/frames
 badapple/badapple.mp4
 badapple/badapple.wav
 badapple/badapple640x480.bin
+steamw/frames
+steamw/steamw.wav
+steamw/*.webm
 *.swp
 *.asc
 *.bin

@@ -78,6 +78,7 @@ module rle_vga_top (
   wire spi_stop_read;
   wire spi_continue_read;
   wire spi_buf_empty0;
+  wire spi_buf_empty1;
   wire spi_buf_empty;
 
   spi_flash_controller #(
@@ -95,7 +96,7 @@ module rle_vga_top (
     .addr_in    (24'b0),
     .start_read (spi_start_read),
     .stop_read  (spi_stop_read),
-    .continue_read(spi_continue_read || spi_buf_empty || spi_buf_empty0),
+    .continue_read(spi_continue_read || spi_buf_empty || spi_buf_empty0 || spi_buf_empty1),
     .data_out   (spi_data),
     .busy       (spi_busy)
   );
@@ -108,12 +109,28 @@ module rle_vga_top (
     .clk        (clk),
     .rstn       (rst_n),
     .start_read (spi_start_read),
-    .continue_read(spi_continue_read || spi_buf_empty),
+    .continue_read(spi_continue_read || spi_buf_empty || spi_buf_empty1),
     .data_in    (spi_data),
     .spi_busy   (spi_busy),
     .prev_empty (1'b1),
     .data_out   (spi_buf_data0),
     .empty      (spi_buf_empty0)
+  );
+
+  wire [15:0] spi_buf_data1;
+
+  spi_buffer #( 
+    .DATA_WIDTH_BYTES(2) 
+  ) i_spi_buf1 (
+    .clk        (clk),
+    .rstn       (rst_n),
+    .start_read (spi_start_read),
+    .continue_read(spi_continue_read || spi_buf_empty),
+    .data_in    (spi_buf_data0),
+    .spi_busy   (spi_busy),
+    .prev_empty (spi_buf_empty0),
+    .data_out   (spi_buf_data1),
+    .empty      (spi_buf_empty1)
   );
 
   wire [15:0] spi_buf_data;
@@ -125,18 +142,17 @@ module rle_vga_top (
     .rstn       (rst_n),
     .start_read (spi_start_read),
     .continue_read(spi_continue_read),
-    .data_in    (spi_buf_data0),
+    .data_in    (spi_buf_data1),
     .spi_busy   (spi_busy),
-    .prev_empty (spi_buf_empty0),
+    .prev_empty (spi_buf_empty1),
     .data_out   (spi_buf_data),
     .empty      (spi_buf_empty)
   );
 
   reg spi_started;
-  wire spi_data_ready = spi_started && (!spi_busy || !spi_buf_empty || !spi_buf_empty0) && !spi_start_read && !spi_continue_read;
+  wire spi_data_ready = spi_started && (!spi_busy || !spi_buf_empty || !spi_buf_empty0 || !spi_buf_empty1) && !spi_start_read && !spi_continue_read;
   wire read_next;
   wire [5:0] video_colour;
-
 
   wire [7:0] pwm_sample;
 

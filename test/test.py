@@ -300,7 +300,7 @@ async def test_audio(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    colour_gen = cocotb.start_soon(generate_audio(dut, 2))
+    colour_gen = cocotb.start_soon(generate_audio(dut, 3))
 
     await ClockCycles(dut.hsync, 1)
 
@@ -339,6 +339,49 @@ async def test_audio(dut):
                 for k in range(4):
                     assert dut.colour.value == j & 0x3f
                     await ClockCycles(dut.clk, 1)
+            await ClockCycles(dut.hsync, 1)
+
+    await ClockCycles(dut.hsync, 3+4+14)
+
+    for colour in range(64):
+        await ClockCycles(dut.clk, 2)
+        count = 0
+        for i in range(255):
+            count += dut.pwm.value
+            await ClockCycles(dut.clk, 1)
+        assert count == colour
+        await ClockCycles(dut.hsync, 1)
+
+    sample = 63
+    for i in range(2, 640, 6):
+        await ClockCycles(dut.clk, 2)
+        count = 0
+        for i in range(255):
+            count += dut.pwm.value
+            await ClockCycles(dut.clk, 1)
+        assert count == sample + 6
+        await ClockCycles(dut.hsync, 1)
+        for j in range(2):
+            await ClockCycles(dut.clk, 2)
+            count = 0
+            for i in range(255):
+                count += dut.pwm.value
+                await ClockCycles(dut.clk, 1)
+            assert count == sample
+            await ClockCycles(dut.hsync, 1)
+
+    for i in range(2, 480-64-319, 4):
+        diff = [(i >> 9) & 7, (i >> 6) & 7, (i >> 3) & 7, i & 7]
+        for j in range(4):
+            if diff[j] >= 4: diff[j] -= 8
+            sample += diff[j]
+            sample &= 0xFF
+            await ClockCycles(dut.clk, 2)
+            count = 0
+            for i in range(255):
+                count += dut.pwm.value
+                await ClockCycles(dut.clk, 1)
+            assert count == sample
             await ClockCycles(dut.hsync, 1)
 
     await colour_gen

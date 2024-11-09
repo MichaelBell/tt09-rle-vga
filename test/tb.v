@@ -43,6 +43,7 @@ module tb ();
   wire [5:0] colour = {uo_out[0], uo_out[4], uo_out[1], uo_out[5], uo_out[2], uo_out[6]};
   wire hsync = uo_out[7];
   wire vsync = uo_out[3];
+  wire pwm = uio_out[7];
 
 `ifdef GL_TEST
   wire VPWR = 1'b1;
