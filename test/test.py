@@ -289,8 +289,10 @@ async def generate_audio(dut, frames, latency=1):
             if (i % 4) == 2:
                 await spi_send_data(dut, 0xF000 + i, latency)
 
-        await spi_send_data(dut, 0xC080, latency)
+        await spi_send_data(dut, 0xD000, latency)
         await spi_send_rle(dut, 0x2ff, 0, latency)
+        await spi_send_rle(dut, 640, 0x3f, latency)
+        await spi_send_rle(dut, 640, 0x3f, latency)
         await RisingEdge(dut.spi_cs)
 
 @cocotb.test()
@@ -310,11 +312,11 @@ async def test_audio(dut):
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
 
-    colour_gen = cocotb.start_soon(generate_audio(dut, 1))
+    colour_gen = cocotb.start_soon(generate_audio(dut, 2))
 
     await ClockCycles(dut.hsync, 1)
 
-    for i in range(1):
+    for i in range(2):
         await ClockCycles(dut.hsync, 3+4+13)
 
         for colour in range(64):

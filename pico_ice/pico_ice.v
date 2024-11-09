@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-`define default_netname none
+`default_nettype none
 
 module rle_vga_top (
         input clk,

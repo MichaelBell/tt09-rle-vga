@@ -5,7 +5,7 @@
 
     /*
         Default parameters are VGA 640x480 @ 60 Hz
-        clock = 25.175 MHz
+        clock = 24 MHz
     */
 
 module vga #(
