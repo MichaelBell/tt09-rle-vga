@@ -45,6 +45,10 @@ Inputs 2-0 set the read latency for the SPI in half clock cycles, it's likely th
 
 Run with a 24MHz clock.
 
+### Maximum file size
+
+The 16MB flash is only enough for the first minute of Bad Apple.  But because the flash read is just one very long read it would be straightforward to supply the data stream from the RP2040 or other external source.  To make it easier to do this from the demo board RP2040, the QSPI pin configuration can be modified by setting `in3` high so that the 4 data pins are contiguous.
+
 ## External hardware
 
 * [QSPI PMOD](https://github.com/mole99/qspi-pmod) plugged into [Audio PMOD](https://github.com/MichaelBell/tt-audio-pmod)

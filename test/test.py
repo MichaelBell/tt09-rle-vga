@@ -59,20 +59,20 @@ async def expect_read_cmd(dut, addr):
         await ClockCycles(dut.spi_clk, 1)
         assert dut.spi_mosi.value == (1 if cmd & 0x80 else 0)
         assert dut.spi_cs.value == 0
-        assert dut.uio_oe.value == 0b11001011
+        assert dut.uio_oe.value == (0b11000111 if dut.qspi_sel.value else 0b11001011)
         cmd <<= 1
 
     for i in range(24):
         await ClockCycles(dut.spi_clk, 1)
         assert dut.spi_mosi.value == (1 if addr & 0x800000 else 0)
         assert dut.spi_cs.value == 0
-        assert dut.uio_oe.value == 0b11001011
+        assert dut.uio_oe.value == (0b11000111 if dut.qspi_sel.value else 0b11001011)
         addr <<= 1
 
     for i in range(8):
         await ClockCycles(dut.spi_clk, 1)
         assert dut.spi_cs.value == 0
-        assert dut.uio_oe.value == 0b11001001
+        assert dut.uio_oe.value == (0b11000011 if dut.qspi_sel.value else 0b11001001)
 
     await FallingEdge(dut.spi_clk)
 
@@ -87,7 +87,7 @@ async def spi_send_data(dut, data, latency):
     for i in range(4):
         await Timer(1, "ns")
         dut.spi_miso_buf[0].value = (data >> 12) & 0xF
-        assert dut.uio_oe.value == 0b11001001
+        assert dut.uio_oe.value == (0b11000011 if dut.qspi_sel.value else 0b11001001)
         assert dut.spi_cs.value == 0
         await FallingEdge(dut.spi_clk)
         data <<= 4
@@ -294,7 +294,7 @@ async def test_audio(dut):
     # Reset
     dut._log.info("Reset")
     dut.ena.value = 1
-    dut.ui_in.value = 0
+    dut.ui_in.value = 9
     dut.spi_miso_buf[0].value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 10)

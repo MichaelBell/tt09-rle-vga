@@ -12,6 +12,15 @@ set_io --warn-no-port sd[3]     18
 set_io --warn-no-port ram_a_cs  26
 set_io --warn-no-port ram_b_cs  20
 
+#set_io --warn-no-port sck       27
+#set_io --warn-no-port flash_cs  25
+#set_io --warn-no-port sd[0]     21
+#set_io --warn-no-port sd[1]     19
+#set_io --warn-no-port sd[2]     26
+#set_io --warn-no-port sd[3]     23
+#set_io --warn-no-port ram_a_cs  18
+#set_io --warn-no-port ram_b_cs  20
+
 set_io --warn-no-port ui_in[0]  43
 set_io --warn-no-port ui_in[1]  38
 set_io --warn-no-port ui_in[2]  34

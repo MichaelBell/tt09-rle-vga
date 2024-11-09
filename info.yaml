@@ -29,7 +29,7 @@ pinout:
   ui[0]: "SPI latency[0]"
   ui[1]: "SPI latency[1]"
   ui[2]: "SPI latency[2]"
-  ui[3]: ""
+  ui[3]: "Select QSPI pinout"
   ui[4]: ""
   ui[5]: ""
   ui[6]: ""
@@ -47,9 +47,9 @@ pinout:
 
   # Bidirectional pins
   uio[0]: "CS"
-  uio[1]: "SD0"
-  uio[2]: "SD1"
-  uio[3]: "SCK"
+  uio[1]: "SD0 / SCK"
+  uio[2]: "SD1 / SD0"
+  uio[3]: "SCK / SD1"
   uio[4]: "SD2"
   uio[5]: "SD3"
   uio[6]: "Unused CS"

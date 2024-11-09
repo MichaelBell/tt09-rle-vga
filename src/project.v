@@ -17,16 +17,21 @@ module tt_um_MichaelBell_rle_vga (
 );
 
   // Bidirs are used for SPI interface
-  wire [3:0] qspi_data_in = {uio_in[5:4], uio_in[2:1]};
+  wire [3:0] qspi_data_in = ui_in[3] ? uio_in[5:2] : {uio_in[5:4], uio_in[2:1]};
   wire [3:0] qspi_data_out;
   wire [3:0] qspi_data_oe;
   wire       qspi_clk_out;
   wire       qspi_flash_select;
   wire       qspi_ram_a_select = 1'b1;
   wire       pwm_audio;
-  assign uio_out = {pwm_audio, qspi_ram_a_select, qspi_data_out[3:2], 
+  assign uio_out = ui_in[3] ?
+                   {pwm_audio, qspi_ram_a_select, qspi_data_out[3:0], 
+                    qspi_clk_out, qspi_flash_select} :
+                   {pwm_audio, qspi_ram_a_select, qspi_data_out[3:2], 
                     qspi_clk_out, qspi_data_out[1:0], qspi_flash_select};
-  assign uio_oe = rst_n ? {2'b11, qspi_data_oe[3:2], 1'b1, qspi_data_oe[1:0], 1'b1} : 8'h00;  
+  assign uio_oe = rst_n ? (ui_in[3] ? 
+                   {2'b11, qspi_data_oe[3:0], 2'b11} :
+                   {2'b11, qspi_data_oe[3:2], 1'b1, qspi_data_oe[1:0], 1'b1}) : 8'h00;  
 
   wire vga_blank;
   wire next_frame;
@@ -155,5 +160,5 @@ module tt_um_MichaelBell_rle_vga (
 
 
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, ui_in[7:3], uio_in[7:6], uio_in[3], uio_in[0], 1'b0};
+  wire _unused = &{ena, ui_in[7:4], uio_in[7:6], uio_in[0], 1'b0};
 endmodule
