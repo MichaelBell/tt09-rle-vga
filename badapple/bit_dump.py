@@ -49,7 +49,7 @@ colour_shift_changes = {
 }
 
 
-max_span_len = 8
+max_span_len = 4
 data_len = 0
 colour_shift = TWO
 
