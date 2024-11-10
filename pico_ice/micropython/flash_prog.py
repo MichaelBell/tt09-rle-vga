@@ -59,39 +59,43 @@ def program(filename):
 
     with open(filename, "rb") as f:
     #if False:
-        buf = bytearray(4096)
+        buf_size = 65536
+        buf = bytearray(buf_size)
         sector = 0
-        while True:
-            num_bytes = f.readinto(buf)
-            #print_bytes(buf[:512])
-            if num_bytes == 0:
-                break
-            
+        while sector < 65536:
             if (sector & 0xF) == 0:
                 flash_cmd([CMD_WEN])
                 flash_cmd([CMD_BLOCK_ERASE, sector >> 4, 0, 0])
 
+            num_bytes = f.readinto(buf)
             while flash_cmd([CMD_READ_SR1], 0, 1)[0] & 1:
                 print("*", end="")
-                time.sleep(0.001)
+                time.sleep(0.01)
             print(".", end="")
+
+            if num_bytes == 0:
+                break
 
             for i in range(0, num_bytes, 256):
                 flash_cmd([CMD_WEN])
                 flash_cmd2([CMD_WRITE, sector >> 4, ((sector & 0xF) << 4) + (i >> 8), 0], buf[i:min(i+256, num_bytes)])
 
                 while flash_cmd([CMD_READ_SR1], 0, 1)[0] & 1:
-                    print("-", end="")
-                    time.sleep(0.001)
-            print(".")
-            sector += 1
+                    pass
+                    #print("-", end="")
+                    #time.sleep(0.001)
+            sector += 16
+            print(f". {sector*4}kB")
+            
+            if num_bytes != buf_size:
+                break
             
         print("Program done")
 
     with open(filename, "rb") as f:
         data = bytearray(256)
         i = 0
-        while True:
+        while i < 20:
             num_bytes = f.readinto(data)
             if num_bytes == 0:
                 break

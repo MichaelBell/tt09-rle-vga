@@ -52,9 +52,12 @@ colour_shift_changes = {
 max_span_len = 4
 data_len = 0
 colour_shift = TWO
+last_colour = -1
+row_out = False
+skipped_audio = False
 
 for f in range(2,6957*2):
-#for f in range(2,500):
+#for f in range(2,1000):
     i = f // 2
     img = Image.open("frames/badapple%04d.png" % (i,)).resize((640,480))
 
@@ -131,14 +134,7 @@ for f in range(2,6957*2):
                     if len(spans) <= 3:
                         break
 
-            #if spans == last_spans:
-            #    repeat_count += 1
-            #else:
-            #    if repeat_count != 0:
-            #        out_file.write(struct.pack('>H', 0xf800 + repeat_count))
-            #        data_len += 2
-            #    repeat_count = 0
-            if True:
+            if len(spans) > 1 or spans[0][1] != last_colour or rows != 1:
                 if sum([s[0] for s in spans]) != 640:
                     #print(spans)
                     print("Error")
@@ -147,7 +143,12 @@ for f in range(2,6957*2):
                 for span in spans:
                     out_file.write(struct.pack('>H', (span[0] << 6) + span[1]))
                 data_len += 2 * len(spans)
-                #last_spans = spans
+                last_colour = spans[-1][1]
+                row_out = True
+            else:
+                row_out = False
+        else:
+            row_out = False
 
         rows -= 1
         if rows != 0: continue
@@ -163,6 +164,13 @@ for f in range(2,6957*2):
         for j in range(1,4):
             differences.append(samples[j] - samples[j-1])
         dmax = max([d if d >= 0 else -1-d for d in differences])
+        
+        if y < 479 and differences[0] == 0 and row_out:
+            rows = 1
+            samples = samples[1:]
+            skipped_audio = True
+            continue
+        skipped_audio = False
         
         if dmax < 4:
             differences = [d & 7 for d in differences]

@@ -21,6 +21,8 @@ module rle_video (
 );
 
     logic [9:0] run_length;
+    logic [5:0] low_data;
+    logic is_colour;
     logic start;
     logic read_next_r;
     logic [8:0] next_sample_adjust;
@@ -31,6 +33,7 @@ module rle_video (
 
     assign stop_data = (run_length == 10'h2ff);
     assign read_next = read_next_r && !stop_data;
+    assign is_colour = data[15:12] < 4'hB;
 
     always_ff @(posedge clk) begin
         if (!rstn) begin
@@ -38,6 +41,7 @@ module rle_video (
             run_length <= 10'h2ff;
             start <= 0;
             colour <= 0;
+            low_data <= 0;
             next_sample_adjust_count <= 0;
         end else begin
             read_next_r <= 0;
@@ -46,6 +50,8 @@ module rle_video (
                 run_length <= 1;
                 start <= 1;
                 colour <= 0;
+                low_data <= 0;
+                next_sample_adjust_count <= 0;
             end
             else if (start) begin
                 if (run_length[0]) begin
@@ -53,7 +59,8 @@ module rle_video (
                     run_length[0] <= 0;
                 end else if (next_frame && data_ready) begin
                     run_length <= data[15:6];
-                    colour <= data[5:0];
+                    if (is_colour) colour <= data[5:0];
+                    else low_data <= data[5:0];
                     read_next_r <= 1;
                     start <= 0;
                 end
@@ -71,13 +78,14 @@ module rle_video (
                 if (run_length == 0) begin
                     if (data_ready) begin
                         run_length <= data[15:6];
-                        colour <= data[5:0];
+                        if (is_colour) colour <= data[5:0];
+                        else low_data <= data[5:0];
                         read_next_r <= 1;
                     end
                 end else if (run_length[9:6] == 4'hC) begin
                     if (next_row) begin
                         run_length <= 0;
-                        pwm_sample <= {run_length[1:0], colour[5:0]};
+                        pwm_sample <= {run_length[1:0], low_data[5:0]};
                         next_sample_adjust_count <= 0;
                     end
                 end else if (run_length[9:8] == 2'b11) begin
@@ -89,9 +97,9 @@ module rle_video (
                             pwm_sample <= adjusted_pwm_sample;
                             next_sample_adjust_count <= run_length[7:6];
                             case (run_length[7:6])
-                                2'b11: next_sample_adjust <= {run_length[2:0], colour[5:0]};
-                                2'b10: next_sample_adjust <= {run_length[1:0], colour[5:0], 1'bx};
-                                2'b01: next_sample_adjust <= {colour[5:0], 3'bx};
+                                2'b11: next_sample_adjust <= {run_length[2:0], low_data[5:0]};
+                                2'b10: next_sample_adjust <= {run_length[1:0], low_data[5:0], 1'bx};
+                                2'b01: next_sample_adjust <= {low_data[5:0], 3'bx};
                                 default: next_sample_adjust <= 9'bx;
                             endcase
                         end
@@ -99,7 +107,8 @@ module rle_video (
                 end else if (next_pixel) begin
                     if (run_length == 1 && data_ready) begin
                         run_length <= data[15:6];
-                        colour <= data[5:0];
+                        if (is_colour) colour <= data[5:0];
+                        else low_data <= data[5:0];
                         read_next_r <= 1;
                     end
                     else begin

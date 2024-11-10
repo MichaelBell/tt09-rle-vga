@@ -252,10 +252,11 @@ async def generate_audio(dut, frames, latency=1):
         addr = 0
 
         for colour in range(64):
-            await spi_send_rle(dut, 320, colour, latency)
-            await spi_send_rle(dut, 2, 1, latency)
-            await spi_send_rle(dut, 2, 2, latency)
-            await spi_send_rle(dut, 316, colour, latency)
+            if (colour & 1) == 0:
+                await spi_send_rle(dut, 320, colour, latency)
+                await spi_send_rle(dut, 2, 1, latency)
+                await spi_send_rle(dut, 2, 2, latency)
+                await spi_send_rle(dut, 316, 63 - colour, latency)
             await spi_send_data(dut, 0xC000 + colour, latency)
         addr += 8 * 64
 
@@ -309,18 +310,23 @@ async def test_audio(dut):
 
         for colour in range(64):
             await ClockCycles(dut.clk, 81)
-            for i in range(320):
-                assert dut.colour.value == colour
-                await ClockCycles(dut.clk, 1)
-            for i in range(2):
-                assert dut.colour.value == 1
-                await ClockCycles(dut.clk, 1)
-            for i in range(2):
-                assert dut.colour.value == 2
-                await ClockCycles(dut.clk, 1)
-            for i in range(316):
-                assert dut.colour.value == colour
-                await ClockCycles(dut.clk, 1)
+            if (colour & 1) == 0:
+                for i in range(320):
+                    assert dut.colour.value == colour
+                    await ClockCycles(dut.clk, 1)
+                for i in range(2):
+                    assert dut.colour.value == 1
+                    await ClockCycles(dut.clk, 1)
+                for i in range(2):
+                    assert dut.colour.value == 2
+                    await ClockCycles(dut.clk, 1)
+                for i in range(316):
+                    assert dut.colour.value == 63 - colour
+                    await ClockCycles(dut.clk, 1)
+            else:
+                for i in range(640):
+                    assert dut.colour.value == 64 - colour
+                    await ClockCycles(dut.clk, 1)
             await ClockCycles(dut.hsync, 1)
 
         colour = 20
